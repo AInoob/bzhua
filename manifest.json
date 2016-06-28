@@ -1,0 +1,24 @@
+{
+	"manifest_version": 2,
+	"name": "B站数据抓取器",
+	"short_name": "B抓",
+	"description": "简单的b站数据抓取器~~~",
+	"version": "0.1.0",
+	"browser_action": {
+		"default_icon": {
+			"128": "images/icon128.png" 
+		},
+		"default_title": "Stoopid~~~",
+		"default_popup": "popup.html"
+	},
+	"background": {
+		"scripts":["thirdParty/jquery.min.js","js/background.js"]
+	},
+	"icons": {
+		"128": "images/icon128.png" 
+	},
+	"permissions": [
+		"unlimitedStorage",
+		"http://*.bilibili.com/"
+	]
+}
