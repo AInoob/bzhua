@@ -67,6 +67,7 @@ function display(){
 	}
 	var list;
 	if(isValid(localStorage.getItem('list'))){
+		console.log('wut');
 		list=JSON.parse(localStorage.getItem('list'));
 	}
 	else{
@@ -204,7 +205,7 @@ document.addEventListener('DOMContentLoaded', function(){
 	if(localStorage.getItem("averageBp")==null){
 		localStorage.setItem("averageBp",'-1');
 	}
-	if(JSON.parse(localStorage.getItem('list'))==null){
+	if(!isValid(localStorage.getItem('list'))||JSON.parse(localStorage.getItem('list'))==null){
 		$('#theData').val("");
 	}
 	else{
