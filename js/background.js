@@ -22,6 +22,19 @@ function isValid(str) {
     return true;
 }
 
+function fetchBp(id){
+	var url='http://www.bilibili.com/widget/ajaxGetBP?aid='+id.slice(2);
+	$.ajax({url:url}).done(function(data){
+		var bp=data.bp;
+		allData[id].bp=bp;
+		remainNum--;
+		check();
+	}).fail(function(){
+		remainNum--;
+		check();
+	});
+}
+
 function fetchAV(id){
 	var url='http://api.bilibili.com/x/stat?aid='+id.slice(2);
 	$.ajax({
@@ -32,9 +45,10 @@ function fetchAV(id){
 				danmu:result.dm,
 				coins:result.coin,
 				comments:result.reply,
-				fav:result.fav
+				fav:result.fav,
+				nums:1
 			};
-			remainNum--;
+			fetchBp(id);
 			check();
 		}).fail(function(t){
 			remainNum--;
@@ -43,7 +57,7 @@ function fetchAV(id){
 }
 
 function fetchArray(id){
-	allData[id[0]]={views:0,danmu:0,chengbao:0,coins:0,comments:0,fans:0,fav:0};
+	allData[id[0]]={views:0,danmu:0,chengbao:0,coins:0,comments:0,bp:0,fans:0,fav:0,nums:id.length-1};
 	for(var i=1;i<id.length;i++){
 		var tempI=i;
 		if(String(id[tempI]).indexOf('av')==-1){
@@ -81,6 +95,7 @@ function fetchArray(id){
 		}
 		else{
 			var url='http://api.bilibili.com/x/stat?aid='+id[i].slice(2);
+			var url2='http://www.bilibili.com/widget/ajaxGetBP?aid='+id[i].slice(2);
 			$.ajax({
 				url: url}).done(function(data){
 					var result=data.data;
@@ -89,8 +104,25 @@ function fetchArray(id){
 					allData[id[0]].coins+=result.coin;
 					allData[id[0]].comments+=result.reply;					
 					allData[id[0]].fav+=result.fav;
-					remainNum--;
-					check();
+					$.ajax({
+						url: url2}).done(function(data2){
+							var bp=data2.bp;
+							if(data2.bp!=null){
+								bp=parseFloat(bp);
+								bp=bp+parseFloat(allData[id[0]].bp);
+								bp=bp.toFixed(2);
+								allData[id[0]].bp=bp;
+							}
+							else{
+								console.log(data2);
+							}
+							remainNum--;
+							check();
+						}).fail(function(){
+							console.log("Disconnect?");
+							remainNum--;
+							check();
+					});
 				}).fail(function(t){
 					remainNum--;
 					check();
@@ -112,7 +144,7 @@ function fetchBig(id){
 			var fans=$('.info-count-item-fans',data);
 			fans=$('em',fans).text();
 			fans=parseBB(fans);
-			allData[id]={views:views,danmu:danmu,fans:fans};
+			allData[id]={views:views,danmu:danmu,fans:fans,nums:1};
 			fetchChengbao(id);
 		}).fail(function(t){
 			remainNum--;
@@ -187,4 +219,8 @@ function fetchAll(){
 		}
 	}
 	chrome.runtime.sendMessage({job: "remaining:"+remainNum}, function() {});
+}
+
+function isOn(t){
+	return localStorage.getItem(t)!='-1';
 }

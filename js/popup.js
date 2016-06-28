@@ -18,6 +18,15 @@ function initEvents(){
 		localStorage.setItem('result',"null");
 		display();
 	});
+	$("#averageBp").change(function(){
+		if(this.checked){
+			localStorage.setItem('averageBp','1');
+		}
+		else{
+			localStorage.setItem('averageBp','-1');
+		}
+		display();
+	});
 	$("#pureData").change(function(){
 		if(this.checked){
 			localStorage.setItem('pureData','1');
@@ -67,8 +76,8 @@ function display(){
 		list=[];
 	}
 	if(result!=null){
-		var output="ID\tViews\tDanmu\tCoins\tfav\tComments\tFans\tSponsers\n";
-		var tableOutput="<tr><th>ID</th><th>Views</th><th>Danmu</th><th>Coins</th><th>fav</th><th>Comments</th><th>Fans</th><th>Sponsers</th></tr>";
+		var output="ID\tViews\tDanmu\tCoins\tfav\tComments\tBP\tFans\tSponsers\n";
+		var tableOutput="<tr><th>ID</th><th>Views</th><th>Danmu</th><th>Coins</th><th>fav</th><th>Comments</th><th>BP</th><th>Fans</th><th>Sponsers</th></tr>";
 		for(var i=0;i<list.length;i++){
 			if(Object.prototype.toString.call(list[i])=='[object Array]'){
 				output+=list[i][0]+'\t';
@@ -81,6 +90,7 @@ function display(){
 			output+=getO('coins',result,list,i);
 			output+=getO('fav',result,list,i);
 			output+=getO('comments',result,list,i);
+			output+=getO('bp',result,list,i);
 			output+=getO('fans',result,list,i);
 			output+=getO('chengbao',result,list,i);
 			output=output.substr(0,output.length-1);
@@ -99,6 +109,7 @@ function display(){
 			tableOutput+=getT('coins',result,list,i);
 			tableOutput+=getT('fav',result,list,i);
 			tableOutput+=getT('comments',result,list,i);
+			tableOutput+=getT('bp',result,list,i);
 			tableOutput+=getT('fans',result,list,i);
 			tableOutput+=getT('chengbao',result,list,i);
 			
@@ -121,19 +132,22 @@ function display(){
 
 function getT(s,result,list,i){
 	var r='<td>';
-	
+	var x;
 	if(Object.prototype.toString.call(list[i])=='[object Array]'){
 		if(result[list[i][0]]==null)
 			return '';
-		var x=result[list[i][0]][s];
+		x=result[list[i][0]][s];
+		if(isOn('averageBp')&&s=='bp'&&x!=null){
+			console.log(x);
+			console.log(list[i]['nums']);
+			x=parseFloat(x)/parseInt(result[list[i][0]]['nums']);
+		}
 	}
 	else{
 		if(result[list[i]]==null)
 			return '';
-		var x=result[list[i]][s];
+		x=result[list[i]][s];
 	}
-	
-	
 	if(x==null){
 		x="-1";
 	}
@@ -144,15 +158,21 @@ function getT(s,result,list,i){
 
 function getO(s,result,list,i){
 	var r='';
+	var x;
 	if(Object.prototype.toString.call(list[i])=='[object Array]'){
 		if(result[list[i][0]]==null)
 			return '';
-		var x=result[list[i][0]][s];
+		x=result[list[i][0]][s];
+		if(isOn('averageBp')&&s=='bp'&&x!=null){
+			console.log(x);
+			console.log(list[i]['nums']);
+			x=parseFloat(x)/parseInt(result[list[i][0]]['nums']);
+		}
 	}
 	else{
 		if(result[list[i]]==null)
 			return '';
-		var x=result[list[i]][s];
+		x=result[list[i]][s];
 	}
 	if(x==null){
 		x="-1";
@@ -181,6 +201,9 @@ document.addEventListener('DOMContentLoaded', function(){
 	if(localStorage.getItem("pureData")==null){
 		localStorage.setItem("pureData",'-1');
 	}
+	if(localStorage.getItem("averageBp")==null){
+		localStorage.setItem("averageBp",'-1');
+	}
 	if(JSON.parse(localStorage.getItem('list'))==null){
 		$('#theData').val("");
 	}
@@ -192,6 +215,12 @@ document.addEventListener('DOMContentLoaded', function(){
 	}
 	else{
 		$("#pureData").prop( "checked", false );
+	}
+	if(localStorage.getItem("averageBp")=='1'){
+		$("#averageBp").prop( "checked", true );
+	}
+	else{
+		$("#averageBp").prop( "checked", false );
 	}
 	display();
 	chrome.runtime.onMessage.addListener(
@@ -207,3 +236,7 @@ document.addEventListener('DOMContentLoaded', function(){
 	});
 	initEvents();
 });
+
+function isOn(t){
+	return localStorage.getItem(t)!='-1';
+}
