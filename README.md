@@ -1,2 +1,2 @@
 # bzhua
-A Chrome Extension that fetch data from bilibili.com
+A Chrome Extension that fetchs data from bilibili.com
