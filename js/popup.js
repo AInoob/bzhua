@@ -95,6 +95,9 @@ function display(){
 			output+=getO('fans',result,list,i);
 			output+=getO('chengbao',result,list,i);
 			output=output.substr(0,output.length-1);
+                        if(result[getId(list,i)].done==false){
+                          output+="inaccurate!";
+                        }
 			output+='\n';
 		}
 		for(var i=0;i<list.length;i++){
@@ -113,6 +116,9 @@ function display(){
 			tableOutput+=getT('bp',result,list,i);
 			tableOutput+=getT('fans',result,list,i);
 			tableOutput+=getT('chengbao',result,list,i);
+                        if(result[getId(list,i)].done==false){
+                          tableOutput+="<td>inaccurate!</td>";
+                        }
 			
 	}
 	tableOutput+='</tr>';
@@ -129,6 +135,12 @@ function display(){
 		$('#theTable').show();
 	}
 	$('#updateTime').val(localStorage.getItem('updateTime'));
+}
+
+function getId(list,i){
+  if(Object.prototype.toString.call(list[i])=='[object Array]')
+    return list[i][0];
+  return list[i];
 }
 
 function getT(s,result,list,i){
@@ -233,6 +245,7 @@ document.addEventListener('DOMContentLoaded', function(){
 		else if(request.job.indexOf('remaining')!=-1){
 			var temp=request.job.match(/remaining\:(\d+)/m)[1];
 			changeRemain(temp);
+			display();
 		}
 	});
 	initEvents();

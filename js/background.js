@@ -1,5 +1,6 @@
 var allData={};
 var remainNum=0;
+var trialTime=4;
 
 document.addEventListener('DOMContentLoaded', function(){
 	chrome.runtime.onMessage.addListener(
@@ -30,28 +31,103 @@ function fetchBp(id){
 		remainNum--;
 		check();
 	}).fail(function(){
+		allData[id].done=false;
 		remainNum--;
 		check();
 	});
 }
 
-function fetchAV(id){
-	var url='http://api.bilibili.com/x/stat?aid='+id.slice(2);
+function fetchAV(id,trial){
+	var url='http://api.bilibili.com/archive_stat/stat?aid='+id.slice(2);
 	$.ajax({
 		url: url}).done(function(data){
+                  if(data==null){
+                    if(trial<trialTime){
+                      fetchAV(id,trial+1);
+                    }
+                    else{
+                      allData[id]={done:false};
+                    }
+                  }
+                  else{
 			var result=data.data;
 			allData[id]={
-				views:result.in_play+result.out_play,
-				danmu:result.dm,
+				views:result.view,
+				danmu:result.danmaku,
 				coins:result.coin,
 				comments:result.reply,
-				fav:result.fav,
+				fav:result.favorite,
 				nums:1
 			};
 			fetchBp(id);
 			check();
+                  }
 		}).fail(function(t){
 			remainNum--;
+                        allData[id]={done:false};
+			check();
+		});
+}
+
+function fetchListAV(id, aid, trial){
+	var url='http://api.bilibili.com/archive_stat/stat?aid='+aid;
+	$.ajax({
+		url: url}).done(function(data){
+                  if(data==null){
+                    if(trial<trialTime){
+                      fetchListAV(id,aid,trial+1);
+                    }
+                    else{
+                      allData[id]={done:false};
+                    }
+                  }
+                  else{
+			var result=data.data;
+                        allData[id].views+=result.view;
+                        allData[id].danmu+=result.danmaku;
+                        allData[id].coins+=result.coin;
+                        allData[id].comments+=result.reply;					
+                        allData[id].fav+=result.favorite;
+			fetchListBp(id,aid,0);
+			check();
+                  }
+		}).fail(function(t){
+			remainNum--;
+                        allData[id]={done:false};
+			check();
+		});
+}
+
+function fetchListBp(id, aid, trial){
+	var url='http://www.bilibili.com/widget/ajaxGetBP?aid='+aid;
+	$.ajax({
+		url: url}).done(function(data){
+                  if(data==null){
+                    if(trial<trailTime){
+                      fetchListAV(id,aid,trial+1);
+                    }
+                    else{
+                      allData[id]={done:false};
+                    }
+                  }
+                  else{
+
+                    var bp=data.bp;
+                    if(bp!=null){
+                      bp=parseFloat(bp);
+                      bp=bp+parseFloat(allData[id].bp);
+                      bp=bp.toFixed(2);
+                      allData[id].bp=bp;
+                    }
+                    else{
+                      console.log(data);
+                    }
+                    remainNum--;
+                    check();
+                  }
+		}).fail(function(t){
+			remainNum--;
+                        allData[id]={done:false};
 			check();
 		});
 }
@@ -85,48 +161,18 @@ function fetchArray(id){
 							check();
 						}).fail(function(){
 							console.log("Disconnect?");
+							allData[id[0]].done=false;
 							remainNum--;
 							check();
 						});
 				}).fail(function(t){
+					allData[id[0]].done=false;
 					remainNum--;
 					check();
 				});
 		}
 		else{
-			var url='http://api.bilibili.com/x/stat?aid='+id[i].slice(2);
-			var url2='http://www.bilibili.com/widget/ajaxGetBP?aid='+id[i].slice(2);
-			$.ajax({
-				url: url}).done(function(data){
-					var result=data.data;
-					allData[id[0]].views+=result.in_play+result.out_play;
-					allData[id[0]].danmu+=result.dm;
-					allData[id[0]].coins+=result.coin;
-					allData[id[0]].comments+=result.reply;					
-					allData[id[0]].fav+=result.fav;
-					$.ajax({
-						url: url2}).done(function(data2){
-							var bp=data2.bp;
-							if(data2.bp!=null){
-								bp=parseFloat(bp);
-								bp=bp+parseFloat(allData[id[0]].bp);
-								bp=bp.toFixed(2);
-								allData[id[0]].bp=bp;
-							}
-							else{
-								console.log(data2);
-							}
-							remainNum--;
-							check();
-						}).fail(function(){
-							console.log("Disconnect?");
-							remainNum--;
-							check();
-					});
-				}).fail(function(t){
-					remainNum--;
-					check();
-				});
+                        fetchListAV(id[0],id[i].slice(2),0);
 		}
 	}
 }
@@ -148,6 +194,7 @@ function fetchBig(id){
 			fetchChengbao(id);
 		}).fail(function(t){
 			remainNum--;
+                        allData[id]={done:false};
 			check();
 		});
 }
@@ -163,6 +210,7 @@ function fetchChengbao(id){
 		}).fail(function(){
 			console.log("Disconnect?");
 			remainNum--;
+			allData[id].done=false;
 			check();
 		});
 }
@@ -175,6 +223,7 @@ function check(){
 		chrome.runtime.sendMessage({job: "done"}, function() {});
 	}
 	else{
+		localStorage.setItem('result',JSON.stringify(allData));
 		chrome.runtime.sendMessage({job: "remaining:"+remainNum}, function() {});
 	}
 }
@@ -214,7 +263,7 @@ function fetchAll(){
 				fetchBig(id);
 			}
 			else{
-				fetchAV(id);
+				fetchAV(id,0);
 			}
 		}
 	}
