@@ -229,6 +229,7 @@ function check(){
 }
 
 function parseBB(data){
+	data=data.replace('亿','00000000');
 	data=data.replace('万','0000');
 	data=data.replace('千','000');
 	if(data.indexOf('.')!=-1){

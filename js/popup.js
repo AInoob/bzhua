@@ -67,7 +67,6 @@ function display(){
 	}
 	var list;
 	if(isValid(localStorage.getItem('list'))){
-		console.log('wut');
 		list=JSON.parse(localStorage.getItem('list'));
 	}
 	else{
@@ -95,7 +94,7 @@ function display(){
 			output+=getO('fans',result,list,i);
 			output+=getO('chengbao',result,list,i);
 			output=output.substr(0,output.length-1);
-                        if(result[getId(list,i)].done==false){
+                        if((!result)||(!result[getId(list,i)])||result[getId(list,i)].done==false){
                           output+="inaccurate!";
                         }
 			output+='\n';
@@ -116,7 +115,7 @@ function display(){
 			tableOutput+=getT('bp',result,list,i);
 			tableOutput+=getT('fans',result,list,i);
 			tableOutput+=getT('chengbao',result,list,i);
-                        if(result[getId(list,i)].done==false){
+                        if((!result)||(!result[getId(list,i)])||result[getId(list,i)].done==false){
                           tableOutput+="<td>inaccurate!</td>";
                         }
 			
