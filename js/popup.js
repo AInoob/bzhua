@@ -1,5 +1,4 @@
-var showDataUntil = 10;
-
+var showDataUntil=100;
 function initEvents() {
 	$("#update").click(function () {
 		var data = $('#theData').val();
@@ -238,7 +237,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		else if (request.job.indexOf('remaining') != -1) {
 			var temp = request.job.match(/remaining\:(\d+)/m)[1];
 			changeRemain(temp);
-			if (temp <= showDataUntil || showDataUntil < 0) {
+			if (temp % showDataUntil == 0 || temp == 0) {
 				display();
 			}
 		}
